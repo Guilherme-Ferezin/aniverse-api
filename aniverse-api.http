@@ -1,0 +1,196 @@
+# AniVerse API - testes para a extensão REST Client do VS Code
+# Como usar: clique em "Send Request" acima de cada requisição, NA ORDEM.
+# O token do login e os IDs criados são guardados automaticamente.
+
+@baseUrl = http://localhost:3000
+@token = {{login.response.body.token}}
+@generoId = {{criarGenero.response.body.id}}
+@animeId = {{criarAnime.response.body.id}}
+@itemId = {{adicionarColecao.response.body.id}}
+
+###############################################
+# 1. AUTENTICAÇÃO
+###############################################
+
+### Registrar usuário (201)
+# @name registrar
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "nome": "Maria Silva",
+  "email": "maria@email.com",
+  "senha": "123456"
+}
+
+### Login (200, retorna o token)
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "maria@email.com",
+  "senha": "123456"
+}
+
+### Login com senha errada (401)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "maria@email.com",
+  "senha": "errada"
+}
+
+### Rota privada sem token (401)
+GET {{baseUrl}}/animes
+
+###############################################
+# 2. PERFIL
+###############################################
+
+### Ver perfil
+GET {{baseUrl}}/perfil
+Authorization: Bearer {{token}}
+
+### Editar perfil
+PUT {{baseUrl}}/perfil
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nome": "Maria S. Oliveira",
+  "email": "maria@email.com"
+}
+
+###############################################
+# 3. GÊNEROS
+###############################################
+
+### Listar gêneros
+GET {{baseUrl}}/generos
+Authorization: Bearer {{token}}
+
+### Criar gênero (201)
+# @name criarGenero
+POST {{baseUrl}}/generos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nome": "Mecha"
+}
+
+### Buscar gênero por ID
+GET {{baseUrl}}/generos/{{generoId}}
+Authorization: Bearer {{token}}
+
+### Editar gênero
+PUT {{baseUrl}}/generos/{{generoId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nome": "Mecha / Robôs"
+}
+
+### Excluir gênero (204)
+DELETE {{baseUrl}}/generos/{{generoId}}
+Authorization: Bearer {{token}}
+
+###############################################
+# 4. ANIMES
+###############################################
+
+### Cadastrar anime (201)
+# @name criarAnime
+POST {{baseUrl}}/animes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "titulo": "Fullmetal Alchemist: Brotherhood",
+  "sinopse": "Dois irmãos usam alquimia para tentar recuperar o que perderam.",
+  "estudio": "Bones",
+  "ano_lancamento": 2009,
+  "total_episodios": 64,
+  "capa_url": "https://exemplo.com/fma.jpg",
+  "generos": [1, 2, 5]
+}
+
+### Listar animes
+GET {{baseUrl}}/animes
+Authorization: Bearer {{token}}
+
+### Buscar por título
+GET {{baseUrl}}/animes?busca=full
+Authorization: Bearer {{token}}
+
+### Filtrar por gênero
+GET {{baseUrl}}/animes?genero=1
+Authorization: Bearer {{token}}
+
+### Buscar anime por ID
+GET {{baseUrl}}/animes/{{animeId}}
+Authorization: Bearer {{token}}
+
+### Editar anime
+PUT {{baseUrl}}/animes/{{animeId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "titulo": "Fullmetal Alchemist: Brotherhood",
+  "sinopse": "Sinopse atualizada.",
+  "estudio": "Bones",
+  "ano_lancamento": 2009,
+  "total_episodios": 64,
+  "generos": [1, 4]
+}
+
+###############################################
+# 5. MINHA COLEÇÃO
+###############################################
+
+### Adicionar à coleção (201)
+# @name adicionarColecao
+POST {{baseUrl}}/colecao
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "anime_id": {{animeId}},
+  "status": "assistindo",
+  "episodios_assistidos": 10
+}
+
+### Listar minha coleção
+GET {{baseUrl}}/colecao
+Authorization: Bearer {{token}}
+
+### Filtrar por status
+GET {{baseUrl}}/colecao?status=assistindo
+Authorization: Bearer {{token}}
+
+### Buscar item por ID
+GET {{baseUrl}}/colecao/{{itemId}}
+Authorization: Bearer {{token}}
+
+### Atualizar: concluir e avaliar
+PUT {{baseUrl}}/colecao/{{itemId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "status": "concluido",
+  "nota": 10,
+  "episodios_assistidos": 64
+}
+
+### Remover da coleção (204)
+DELETE {{baseUrl}}/colecao/{{itemId}}
+Authorization: Bearer {{token}}
+
+### Excluir anime (204)
+DELETE {{baseUrl}}/animes/{{animeId}}
+Authorization: Bearer {{token}}
