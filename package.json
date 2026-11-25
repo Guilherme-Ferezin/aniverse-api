@@ -1,11 +1,15 @@
 {
   "name": "aniverse-api",
   "version": "1.0.0",
-  "description": "API REST do AniVerse — Anime Tracker",
+  "description": "AniVerse — Anime Tracker: API REST (Node.js + Express + MySQL) e front-end React",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon --watch src src/server.js",
+    "importar": "node scripts/importar-animes.js",
+    "seed": "node scripts/importar-animes.js --local",
+    "frontend:install": "npm --prefix frontend install",
+    "frontend": "npm --prefix frontend run dev"
   },
   "engines": { "node": ">=18" },
   "dependencies": {

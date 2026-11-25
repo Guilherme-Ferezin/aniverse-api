@@ -1,38 +1,61 @@
-# AniVerse API
+# AniVerse — Anime Tracker
 
-API REST do **AniVerse — Anime Tracker** (Projeto Integrador Full Stack, Sprint 2).
+Projeto Integrador Full Stack: plataforma para o usuário criar uma conta, cadastrar animes e organizar sua coleção pessoal em **Assistindo**, **Concluído** e **Quero assistir**, com nota e progresso de episódios.
 
-**Stack:** Node.js, Express 5, MySQL 8 (`mysql2`), JWT (`jsonwebtoken`) e bcrypt (`bcryptjs`).
+| Camada | Tecnologia |
+|---|---|
+| Front-end | React 18, Vite, React Router, Axios, Bootstrap 5 |
+| Back-end | Node.js, Express 5, JWT, bcrypt |
+| Banco de dados | MySQL 8 |
+
+## Estrutura do repositório
+
+```
+aniverse-api/
+  src/            API REST (controllers, routes, middlewares, config, utils)
+  frontend/       Front-end React (tem README próprio)
+  scripts/        Importação automática de animes (API Jikan)
+  docs/           Testes das rotas (aniverse-api.http) e coleção do Postman
+  aniverse.sql    Script de criação do banco (DDL)
+```
 
 ## Como rodar
 
-1. Crie o banco executando o `aniverse.sql` no MySQL Workbench.
-2. Instale as dependências:
-   ```
-   npm install
-   ```
-3. Copie `.env.example` para `.env` e preencha `DB_PASSWORD` e `JWT_SECRET`.
-4. Inicie o servidor:
-   ```
-   npm run dev
-   ```
-5. Abra http://localhost:3000. Deve aparecer `{"api":"AniVerse","status":"online"}`.
+### 1. Banco de dados
+Execute o `aniverse.sql` no MySQL (Workbench ou terminal). Ele cria o banco `aniverse`, as 5 tabelas e os gêneros iniciais.
 
-## Estrutura
-
+### 2. API (porta 3000)
 ```
-src/
-  config/        conexão com o MySQL
-  controllers/   regras de cada recurso
-  middlewares/   autenticação JWT e tratamento de erros
-  routes/        definição das rotas
-  utils/         validações e classe de erro
-  app.js         configuração do Express
-  server.js      inicialização
-docs/            coleção do Postman
+npm install
 ```
+Copie `.env.example` para `.env` e preencha `DB_PORT`, `DB_PASSWORD` e `JWT_SECRET`. Depois:
+```
+npm run dev
+```
+Ao abrir http://localhost:3000 deve aparecer `{"api":"AniVerse","status":"online"}`.
 
-## Endpoints
+### 3. Front-end (porta 5173)
+Em **outro terminal**, na pasta raiz:
+```
+npm run frontend:install
+npm run frontend
+```
+Abra http://localhost:5173 (cadastre-se na tela inicial).
+
+### 4. Popular o catálogo de animes
+Com pelo menos um usuário cadastrado, na pasta raiz:
+```
+npm run importar -- 50
+```
+Importa os 50 animes mais populares do MyAnimeList (API pública Jikan), com capa, sinopse, estúdio e gêneros. **Sem internet ou com a Jikan fora do ar, o script usa automaticamente um catálogo local** de 28 animes (sem capas, que aparecem como cartões coloridos).
+
+Outras opções:
+- `npm run seed`: usa só o catálogo local, sem tentar a internet.
+- `npm run importar -- 50 email@exemplo.com`: define o dono dos animes (o dono pode editar e excluir). Sem e-mail, vale o primeiro usuário cadastrado.
+
+Pode rodar mais de uma vez: animes com o mesmo título são ignorados.
+
+## Endpoints da API
 
 Todas as rotas, exceto `/auth/*`, exigem o header `Authorization: Bearer <token>`.
 
@@ -50,9 +73,10 @@ Todas as rotas, exceto `/auth/*`, exigem o header `Authorization: Bearer <token>
 
 Valores de `status`: `assistindo`, `concluido`, `quero_assistir`.
 
-## Testes
+## Testes das rotas
 
-Importe `docs/AniVerse.postman_collection.json` no Postman (ou no Thunder Client) e execute na ordem. O login salva o token automaticamente.
+- `docs/aniverse-api.http`: requisições para a extensão **REST Client** do VS Code (o login guarda o token sozinho).
+- `docs/AniVerse.postman_collection.json`: coleção para importar no Postman.
 
 ## Segurança
 

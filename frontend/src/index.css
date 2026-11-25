@@ -1,0 +1,16 @@
+.tela-auth {
+  max-width: 420px;
+  padding-top: 8vh;
+}
+
+.capa-vazia {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 1rem;
+  text-align: center;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
