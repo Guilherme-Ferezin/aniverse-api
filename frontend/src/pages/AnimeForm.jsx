@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import api, { erroMsg } from '../services/api';
+import { useToast } from '../context/ToastContext';
 import Alerta from '../components/Alerta';
 import Carregando from '../components/Carregando';
+import Icone from '../components/Icone';
 
 const VAZIO = {
   titulo: '',
@@ -18,6 +20,7 @@ export default function AnimeForm() {
   const { id } = useParams();
   const editando = Boolean(id);
   const navigate = useNavigate();
+  const avisar = useToast();
 
   const [form, setForm] = useState(VAZIO);
   const [generos, setGeneros] = useState([]);
@@ -69,6 +72,7 @@ export default function AnimeForm() {
     try {
       if (editando) await api.put(`/animes/${id}`, corpo);
       else await api.post('/animes', corpo);
+      avisar(editando ? `"${form.titulo}" foi atualizado.` : `"${form.titulo}" foi cadastrado no catálogo.`);
       navigate('/animes');
     } catch (err) {
       setErro(erroMsg(err));
@@ -79,66 +83,71 @@ export default function AnimeForm() {
   if (carregando) return <Carregando />;
 
   return (
-    <div className="row justify-content-center">
-      <div className="col-lg-8">
-        <h1 className="h3 mb-3">{editando ? 'Editar anime' : 'Novo anime'}</h1>
-        <Alerta>{erro}</Alerta>
-
-        <form onSubmit={salvar} className="card card-body">
-          <div className="mb-3">
-            <label className="form-label" htmlFor="titulo">Título *</label>
-            <input id="titulo" name="titulo" className="form-control" value={form.titulo} onChange={mudar} required />
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label" htmlFor="sinopse">Sinopse</label>
-            <textarea id="sinopse" name="sinopse" rows="4" className="form-control" value={form.sinopse} onChange={mudar} />
-          </div>
-
-          <div className="row g-3 mb-3">
-            <div className="col-md-4">
-              <label className="form-label" htmlFor="estudio">Estúdio</label>
-              <input id="estudio" name="estudio" className="form-control" value={form.estudio} onChange={mudar} />
-            </div>
-            <div className="col-6 col-md-4">
-              <label className="form-label" htmlFor="ano">Ano de lançamento</label>
-              <input id="ano" name="ano_lancamento" type="number" min="1900" max="2100" className="form-control" value={form.ano_lancamento} onChange={mudar} />
-            </div>
-            <div className="col-6 col-md-4">
-              <label className="form-label" htmlFor="eps">Nº de episódios</label>
-              <input id="eps" name="total_episodios" type="number" min="0" className="form-control" value={form.total_episodios} onChange={mudar} />
-            </div>
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label" htmlFor="capa">URL da capa</label>
-            <input id="capa" name="capa_url" type="url" placeholder="https://..." className="form-control" value={form.capa_url} onChange={mudar} />
-          </div>
-
-          <div className="mb-4">
-            <span className="form-label d-block">Gêneros</span>
-            {generos.map((g) => (
-              <div className="form-check form-check-inline" key={g.id}>
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  id={`genero-${g.id}`}
-                  checked={selecionados.includes(g.id)}
-                  onChange={() => alternarGenero(g.id)}
-                />
-                <label className="form-check-label" htmlFor={`genero-${g.id}`}>{g.nome}</label>
-              </div>
-            ))}
-          </div>
-
-          <div className="d-flex gap-2">
-            <button type="submit" className="btn btn-info" disabled={salvando}>
-              {salvando ? 'Salvando...' : 'Salvar'}
-            </button>
-            <Link to="/animes" className="btn btn-outline-secondary">Cancelar</Link>
-          </div>
-        </form>
+    <div className="form-narrow">
+      <div className="page-heading">
+        <div>
+          <span className="eyebrow">Catálogo</span>
+          <h2>{editando ? 'Editar anime' : 'Novo anime'}</h2>
+          <p>{editando ? 'Atualize as informações do título.' : 'Cadastre um título no catálogo do AniVerse.'}</p>
+        </div>
       </div>
+      <Alerta>{erro}</Alerta>
+
+      <form onSubmit={salvar} className="panel form-panel">
+        <div className="form-heading">
+          <span className="stat-icon"><Icone nome="film" tamanho={17} /></span>
+          <span><b>Dados do anime</b><small>Campos com * são obrigatórios</small></span>
+        </div>
+
+        <div className="form-grid">
+          <label className="field col-6">
+            <span>Título <i>*</i></span>
+            <input name="titulo" value={form.titulo} onChange={mudar} required />
+          </label>
+
+          <label className="field col-6">
+            <span>Sinopse</span>
+            <textarea name="sinopse" rows="4" value={form.sinopse} onChange={mudar} />
+          </label>
+
+          <label className="field col-2">
+            <span>Estúdio</span>
+            <input name="estudio" value={form.estudio} onChange={mudar} />
+          </label>
+          <label className="field col-2">
+            <span>Ano de lançamento</span>
+            <input name="ano_lancamento" type="number" min="1900" max="2100" value={form.ano_lancamento} onChange={mudar} />
+          </label>
+          <label className="field col-2">
+            <span>Nº de episódios</span>
+            <input name="total_episodios" type="number" min="0" value={form.total_episodios} onChange={mudar} />
+          </label>
+
+          <label className="field col-6">
+            <span>URL da capa</span>
+            <input name="capa_url" type="url" placeholder="https://..." value={form.capa_url} onChange={mudar} />
+          </label>
+
+          <fieldset className="field col-6" style={{ border: 0, padding: 0, margin: 0 }}>
+            <span>Gêneros</span>
+            <div className="check-chips">
+              {generos.map((g) => (
+                <label className="check-chip" key={g.id}>
+                  <input type="checkbox" checked={selecionados.includes(g.id)} onChange={() => alternarGenero(g.id)} />
+                  <span>{g.nome}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        </div>
+
+        <div className="form-actions">
+          <Link to="/animes" className="btn btn-quiet">Cancelar</Link>
+          <button type="submit" className="btn btn-primary" disabled={salvando}>
+            {salvando ? 'Salvando...' : 'Salvar'}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

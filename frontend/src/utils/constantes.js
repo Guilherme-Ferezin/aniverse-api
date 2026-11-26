@@ -1,3 +1,4 @@
+// "cor" vira a classe .tag-<cor> no CSS
 export const STATUS = {
   assistindo: { rotulo: 'Assistindo', cor: 'primary' },
   concluido: { rotulo: 'Concluído', cor: 'success' },

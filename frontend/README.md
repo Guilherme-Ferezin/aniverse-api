@@ -2,7 +2,7 @@
 
 Front-end do **AniVerse — Anime Tracker** (Projeto Integrador Full Stack, Sprint 3).
 
-**Stack:** React 18, Vite, React Router, Axios e Bootstrap 5.
+**Stack:** React 18, Vite, React Router, Axios, com CSS próprio (layout com sidebar, no estilo do Lumina).
 
 Consome a API que está na raiz deste mesmo repositório (Node.js + Express + MySQL).
 

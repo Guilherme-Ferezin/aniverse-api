@@ -17,6 +17,25 @@ async function buscarItem(id, usuarioId) {
   return linhas[0];
 }
 
+// Acrescenta a lista de gêneros de cada anime (usada no filtro por gênero da tela)
+async function anexarGeneros(itens) {
+  if (itens.length === 0) return itens;
+  const [linhas] = await pool.query(
+    `SELECT ag.anime_id, g.id, g.nome
+       FROM anime_generos ag
+       JOIN generos g ON g.id = ag.genero_id
+      WHERE ag.anime_id IN (?)
+      ORDER BY g.nome`,
+    [itens.map((i) => i.anime_id)]
+  );
+  for (const item of itens) {
+    item.generos = linhas
+      .filter((l) => l.anime_id === item.anime_id)
+      .map((l) => ({ id: l.id, nome: l.nome }));
+  }
+  return itens;
+}
+
 function validarProgresso(episodios, totalEpisodios) {
   if (totalEpisodios !== null && episodios > totalEpisodios) {
     throw new HttpError(
@@ -49,7 +68,7 @@ exports.listar = async (req, res) => {
     `${SELECT_BASE} WHERE ${filtros.join(' AND ')} ORDER BY c.atualizado_em DESC`,
     params
   );
-  res.json(linhas);
+  res.json(await anexarGeneros(linhas));
 };
 
 exports.obter = async (req, res) => {

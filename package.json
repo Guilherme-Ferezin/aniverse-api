@@ -8,6 +8,8 @@
     "dev": "nodemon --watch src src/server.js",
     "importar": "node scripts/importar-animes.js",
     "seed": "node scripts/importar-animes.js --local",
+    "capas": "node scripts/atualizar-capas.js",
+    "catalogo": "node scripts/importar-anilist.js",
     "frontend:install": "npm --prefix frontend install",
     "frontend": "npm --prefix frontend run dev"
   },

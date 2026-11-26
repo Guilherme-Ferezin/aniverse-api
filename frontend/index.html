@@ -1,8 +1,17 @@
 <!doctype html>
-<html lang="pt-BR" data-bs-theme="dark">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#1b1740" />
+    <link rel="icon" type="image/svg+xml" href="/aniverse-mark.svg" />
+    <script>
+      // aplica o tema salvo antes de renderizar (evita "piscar" de claro para escuro)
+      try {
+        var t = localStorage.getItem('tema') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-tema', t);
+      } catch (e) {}
+    </script>
     <title>AniVerse — Anime Tracker</title>
   </head>
   <body>

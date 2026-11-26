@@ -4,7 +4,7 @@ Projeto Integrador Full Stack: plataforma para o usuário criar uma conta, cadas
 
 | Camada | Tecnologia |
 |---|---|
-| Front-end | React 18, Vite, React Router, Axios, Bootstrap 5 |
+| Front-end | React 18, Vite, React Router, Axios, CSS próprio (tema claro/escuro) |
 | Back-end | Node.js, Express 5, JWT, bcrypt |
 | Banco de dados | MySQL 8 |
 
@@ -14,8 +14,8 @@ Projeto Integrador Full Stack: plataforma para o usuário criar uma conta, cadas
 aniverse-api/
   src/            API REST (controllers, routes, middlewares, config, utils)
   frontend/       Front-end React (tem README próprio)
-  scripts/        Importação automática de animes (API Jikan)
-  docs/           Testes das rotas (aniverse-api.http) e coleção do Postman
+  scripts/        Importação do catálogo (AniList) e tradução das sinopses
+  docs/           Documento do projeto, DER, testes das rotas (.http) e coleção do Postman
   aniverse.sql    Script de criação do banco (DDL)
 ```
 
@@ -43,17 +43,22 @@ npm run frontend
 Abra http://localhost:5173 (cadastre-se na tela inicial).
 
 ### 4. Popular o catálogo de animes
-Com pelo menos um usuário cadastrado, na pasta raiz:
+Com internet, importe o catálogo (capas, sinopse, estúdio, ano, episódios e gêneros) pela **AniList**, que não exige chave:
 ```
-npm run importar -- 50
+npm run catalogo -- 150
 ```
-Importa os 50 animes mais populares do MyAnimeList (API pública Jikan), com capa, sinopse, estúdio e gêneros. **Sem internet ou com a Jikan fora do ar, o script usa automaticamente um catálogo local** de 28 animes (sem capas, que aparecem como cartões coloridos).
+Importa os 150 animes mais populares (máx. 500). Rodar de novo com um número maior só acrescenta os que faltam. Animes com o mesmo título são ignorados.
 
-Outras opções:
-- `npm run seed`: usa só o catálogo local, sem tentar a internet.
-- `npm run importar -- 50 email@exemplo.com`: define o dono dos animes (o dono pode editar e excluir). Sem e-mail, vale o primeiro usuário cadastrado.
+Para definir o dono dos animes (o dono pode editar e excluir): `npm run catalogo -- 150 email@exemplo.com`. Sem e-mail, vale o primeiro usuário cadastrado.
 
-Pode rodar mais de uma vez: animes com o mesmo título são ignorados.
+**Sem internet:** `npm run seed` carrega um catálogo local de 28 animes. As capas podem ser buscadas depois com `npm run capas`.
+
+### 5. Sinopses em português
+A AniList entrega parte das sinopses em inglês. As traduzidas ficam em `scripts/sinopses-pt.json` e são aplicadas no banco com:
+```
+node scripts/aplicar-sinopses.js scripts/sinopses-pt.json
+```
+Use o mesmo `.env` do banco que o site utiliza.
 
 ## Endpoints da API
 
@@ -85,3 +90,6 @@ Valores de `status`: `assistindo`, `concluido`, `quero_assistir`.
 - Consultas SQL parametrizadas (proteção contra SQL injection).
 - Cada usuário acessa somente a própria coleção.
 - Segredos em variáveis de ambiente (`.env` fora do Git).
+
+## Hospedagem (opcional)
+O projeto roda localmente e a hospedagem não faz parte da entrega. Para publicar, é possível usar um Render Static Site (front) + Web Service (API) com um banco MySQL externo (por exemplo, TiDB Cloud), definindo `DB_SSL=true` e `VITE_API_URL` nas variáveis de ambiente.

@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import api, { erroMsg } from '../services/api';
+import { useToast } from '../context/ToastContext';
 import Alerta from '../components/Alerta';
 import Carregando from '../components/Carregando';
+import Icone from '../components/Icone';
 
 export default function Generos() {
+  const avisar = useToast();
   const [generos, setGeneros] = useState([]);
   const [novoNome, setNovoNome] = useState('');
   const [editandoId, setEditandoId] = useState(null);
@@ -31,6 +34,7 @@ export default function Generos() {
     setErro('');
     try {
       await api.post('/generos', { nome: novoNome });
+      avisar(`Gênero "${novoNome}" adicionado.`);
       setNovoNome('');
       carregar();
     } catch (err) {
@@ -42,6 +46,7 @@ export default function Generos() {
     setErro('');
     try {
       await api.put(`/generos/${id}`, { nome: editandoNome });
+      avisar(`Gênero renomeado para "${editandoNome}".`);
       setEditandoId(null);
       carregar();
     } catch (err) {
@@ -54,6 +59,7 @@ export default function Generos() {
     setErro('');
     try {
       await api.delete(`/generos/${genero.id}`);
+      avisar(`Gênero "${genero.nome}" excluído.`);
       carregar();
     } catch (err) {
       setErro(erroMsg(err));
@@ -61,60 +67,70 @@ export default function Generos() {
   }
 
   return (
-    <div className="row justify-content-center">
-      <div className="col-lg-6">
-        <h1 className="h3 mb-3">Gêneros</h1>
+    <div className="form-narrow">
+      <div className="page-heading">
+        <div>
+          <span className="eyebrow">Organização · {generos.length} {generos.length === 1 ? 'gênero' : 'gêneros'}</span>
+          <h2>Gêneros</h2>
+          <p>Crie e organize as categorias usadas no catálogo.</p>
+        </div>
+      </div>
 
-        <form className="input-group mb-3" onSubmit={criar}>
-          <input
-            className="form-control"
-            placeholder="Novo gênero"
-            value={novoNome}
-            onChange={(e) => setNovoNome(e.target.value)}
-            required
-          />
-          <button className="btn btn-info">Adicionar</button>
+      <Alerta>{erro}</Alerta>
+
+      <section className="panel form-panel">
+        <div className="form-heading">
+          <span className="stat-icon"><Icone nome="tag" tamanho={17} /></span>
+          <span><b>Novo gênero</b><small>Ex.: Isekai, Slice of life</small></span>
+        </div>
+
+        <form className="add-row" onSubmit={criar}>
+          <label className="search-field">
+            <Icone nome="tag" tamanho={15} />
+            <span className="sr-only">Novo gênero</span>
+            <input placeholder="Novo gênero" value={novoNome} onChange={(e) => setNovoNome(e.target.value)} required />
+          </label>
+          <button className="btn btn-primary"><Icone nome="plus" tamanho={15} /> Adicionar</button>
         </form>
-
-        <Alerta>{erro}</Alerta>
 
         {carregando ? (
           <Carregando />
         ) : (
-          <ul className="list-group">
+          <ul style={{ listStyle: 'none', margin: '10px 0 0', padding: 0 }}>
             {generos.map((g) => (
-              <li className="list-group-item d-flex align-items-center gap-2" key={g.id}>
+              <li className="list-row" key={g.id}>
                 {editandoId === g.id ? (
                   <>
-                    <input
-                      className="form-control form-control-sm"
-                      value={editandoNome}
-                      onChange={(e) => setEditandoNome(e.target.value)}
-                      autoFocus
-                    />
-                    <button className="btn btn-sm btn-info" onClick={() => salvarEdicao(g.id)}>Salvar</button>
-                    <button className="btn btn-sm btn-outline-secondary" onClick={() => setEditandoId(null)}>Cancelar</button>
+                    <label className="search-field">
+                      <span className="sr-only">Nome do gênero</span>
+                      <input value={editandoNome} onChange={(e) => setEditandoNome(e.target.value)} autoFocus />
+                    </label>
+                    <button className="btn btn-primary btn-sm" onClick={() => salvarEdicao(g.id)}>Salvar</button>
+                    <button className="btn btn-quiet btn-sm" onClick={() => setEditandoId(null)}>Cancelar</button>
                   </>
                 ) : (
                   <>
-                    <span className="me-auto">{g.nome}</span>
+                    <span className="stat-icon"><Icone nome="tag" tamanho={15} /></span>
+                    <b>{g.nome}</b>
                     <button
-                      className="btn btn-sm btn-outline-light"
+                      className="btn btn-outline btn-sm"
                       onClick={() => {
                         setEditandoId(g.id);
                         setEditandoNome(g.nome);
                       }}
                     >
-                      Editar
+                      <Icone nome="pencil" tamanho={14} /> Editar
                     </button>
-                    <button className="btn btn-sm btn-outline-danger" onClick={() => excluir(g)}>Excluir</button>
+                    <button className="btn btn-danger-outline btn-sm" onClick={() => excluir(g)} aria-label={`Excluir ${g.nome}`}>
+                      <Icone nome="trash" tamanho={14} />
+                    </button>
                   </>
                 )}
               </li>
             ))}
           </ul>
         )}
-      </div>
+      </section>
     </div>
   );
 }

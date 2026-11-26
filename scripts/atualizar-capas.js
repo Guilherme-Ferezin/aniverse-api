@@ -16,36 +16,7 @@ const esperar = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const TEMPO_LIMITE = 10000;
 
 // Título no banco -> ID no MyAnimeList
-const MAL_IDS = {
-  'Fullmetal Alchemist: Brotherhood': 5114,
-  'Death Note': 1535,
-  'Attack on Titan': 16498,
-  'Steins;Gate': 9253,
-  'Cowboy Bebop': 1,
-  Naruto: 20,
-  'One Piece': 21,
-  'Hunter x Hunter': 11061,
-  'Demon Slayer': 38000,
-  'Jujutsu Kaisen': 40748,
-  'My Hero Academia': 31964,
-  'One Punch Man': 30276,
-  'Your Name': 32281,
-  'Spirited Away': 199,
-  'Neon Genesis Evangelion': 30,
-  'Dragon Ball Z': 813,
-  'Sword Art Online': 11757,
-  'Re:Zero': 31240,
-  Konosuba: 30831,
-  'Clannad: After Story': 4181,
-  'Toradora!': 4224,
-  'Violet Evergarden': 33352,
-  'Mob Psycho 100': 32182,
-  'Tokyo Ghoul': 22319,
-  'Haikyu!!': 20583,
-  'Chainsaw Man': 44511,
-  'Spy x Family': 50265,
-  "Frieren: Beyond Journey's End": 52991,
-};
+const MAL_IDS = require('./mal-ids');
 
 async function consultar(consulta, variaveis, tentativa = 1) {
   const resposta = await fetch('https://graphql.anilist.co', {

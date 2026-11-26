@@ -2,17 +2,19 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api, { erroMsg } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import Alerta from '../components/Alerta';
 import Carregando from '../components/Carregando';
+import Icone from '../components/Icone';
 
 export default function Perfil() {
   const { atualizarUsuario, logout } = useAuth();
   const navigate = useNavigate();
+  const avisar = useToast();
   const [form, setForm] = useState({ nome: '', email: '', senha: '' });
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState('');
-  const [aviso, setAviso] = useState('');
 
   useEffect(() => {
     api
@@ -27,7 +29,6 @@ export default function Perfil() {
   async function salvar(e) {
     e.preventDefault();
     setErro('');
-    setAviso('');
     setSalvando(true);
     try {
       const corpo = { nome: form.nome, email: form.email };
@@ -35,7 +36,7 @@ export default function Perfil() {
       const { data } = await api.put('/perfil', corpo);
       atualizarUsuario({ id: data.id, nome: data.nome, email: data.email });
       setForm({ nome: data.nome, email: data.email, senha: '' });
-      setAviso('Perfil atualizado com sucesso!');
+      avisar('Perfil atualizado com sucesso!');
     } catch (err) {
       setErro(erroMsg(err));
     } finally {
@@ -49,6 +50,7 @@ export default function Perfil() {
       await api.delete('/perfil');
       logout();
       navigate('/login');
+      avisar('Sua conta foi excluída.', 'info');
     } catch (err) {
       setErro(erroMsg(err));
     }
@@ -57,39 +59,52 @@ export default function Perfil() {
   if (carregando) return <Carregando />;
 
   return (
-    <div className="row justify-content-center">
-      <div className="col-lg-6">
-        <h1 className="h3 mb-3">Meu perfil</h1>
-        <Alerta>{erro}</Alerta>
-        <Alerta tipo="success">{aviso}</Alerta>
-
-        <form onSubmit={salvar} className="card card-body mb-4">
-          <div className="mb-3">
-            <label className="form-label" htmlFor="nome">Nome</label>
-            <input id="nome" name="nome" className="form-control" value={form.nome} onChange={mudar} required />
-          </div>
-          <div className="mb-3">
-            <label className="form-label" htmlFor="email">E-mail</label>
-            <input id="email" name="email" type="email" className="form-control" value={form.email} onChange={mudar} required />
-          </div>
-          <div className="mb-4">
-            <label className="form-label" htmlFor="senha">Nova senha</label>
-            <input id="senha" name="senha" type="password" minLength={6} className="form-control" value={form.senha} onChange={mudar} />
-            <div className="form-text">Deixe em branco para manter a senha atual.</div>
-          </div>
-          <button type="submit" className="btn btn-info" disabled={salvando}>
-            {salvando ? 'Salvando...' : 'Salvar alterações'}
-          </button>
-        </form>
-
-        <div className="card border-danger">
-          <div className="card-body">
-            <h2 className="h6 text-danger">Zona de perigo</h2>
-            <p className="small text-secondary">Excluir a conta apaga também toda a sua coleção.</p>
-            <button className="btn btn-outline-danger btn-sm" onClick={excluirConta}>Excluir minha conta</button>
-          </div>
+    <div className="form-narrow">
+      <div className="page-heading">
+        <div>
+          <span className="eyebrow">Conta</span>
+          <h2>Meu perfil</h2>
+          <p>Mantenha seus dados de acesso atualizados.</p>
         </div>
       </div>
+      <Alerta>{erro}</Alerta>
+
+      <form onSubmit={salvar} className="panel form-panel">
+        <div className="form-heading">
+          <span className="stat-icon"><Icone nome="user" tamanho={17} /></span>
+          <span><b>Dados pessoais</b><small>Nome, e-mail e senha de acesso</small></span>
+        </div>
+
+        <div className="form-grid">
+          <label className="field col-3">
+            <span>Nome</span>
+            <input name="nome" value={form.nome} onChange={mudar} required />
+          </label>
+          <label className="field col-3">
+            <span>E-mail</span>
+            <input name="email" type="email" value={form.email} onChange={mudar} required />
+          </label>
+          <label className="field col-6">
+            <span>Nova senha</span>
+            <input name="senha" type="password" minLength={6} value={form.senha} onChange={mudar} />
+            <small>Deixe em branco para manter a senha atual.</small>
+          </label>
+        </div>
+
+        <div className="form-actions">
+          <button type="submit" className="btn btn-primary" disabled={salvando}>
+            {salvando ? 'Salvando...' : 'Salvar alterações'}
+          </button>
+        </div>
+      </form>
+
+      <section className="panel danger-zone">
+        <h2>Zona de perigo</h2>
+        <p>Excluir a conta apaga também toda a sua coleção.</p>
+        <button className="btn btn-danger-outline btn-sm" onClick={excluirConta}>
+          <Icone nome="trash" tamanho={14} /> Excluir minha conta
+        </button>
+      </section>
     </div>
   );
 }

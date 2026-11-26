@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import api, { erroMsg } from '../services/api';
 import { STATUS } from '../utils/constantes';
 import Alerta from './Alerta';
+import Icone from './Icone';
+import Portal from './Portal';
 
 // Janela para alterar status, nota e progresso de um item da coleção
 export default function ModalColecao({ item, onFechar, onSalvo }) {
@@ -13,7 +15,15 @@ export default function ModalColecao({ item, onFechar, onSalvo }) {
   const [erro, setErro] = useState('');
   const [salvando, setSalvando] = useState(false);
 
-  const mudar = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  function mudar(e) {
+    const { name, value } = e.target;
+    const novo = { ...form, [name]: value };
+    // Ao marcar como concluído, completa os episódios assistidos
+    if (name === 'status' && value === 'concluido' && item.total_episodios) {
+      novo.episodios_assistidos = item.total_episodios;
+    }
+    setForm(novo);
+  }
 
   async function salvar(e) {
     e.preventDefault();
@@ -32,71 +42,62 @@ export default function ModalColecao({ item, onFechar, onSalvo }) {
     }
   }
 
+  useEffect(() => {
+    const aoTeclar = (e) => e.key === 'Escape' && onFechar();
+    document.addEventListener('keydown', aoTeclar);
+    return () => document.removeEventListener('keydown', aoTeclar);
+  }, [onFechar]);
+
   return (
-    <div className="modal d-block" tabIndex="-1" style={{ background: 'rgba(0,0,0,.6)' }}>
-      <div className="modal-dialog modal-dialog-centered">
-        <div className="modal-content">
-          <form onSubmit={salvar}>
-            <div className="modal-header">
-              <h2 className="modal-title h5">{item.titulo}</h2>
-              <button type="button" className="btn-close" aria-label="Fechar" onClick={onFechar} />
-            </div>
-            <div className="modal-body">
-              <Alerta>{erro}</Alerta>
+    <Portal>
+      <div className="modal-bg">
+        <form className="modal" role="dialog" aria-modal="true" aria-labelledby="colecao-titulo" onSubmit={salvar}>
+          <button type="button" className="icon-btn modal-x" aria-label="Fechar" onClick={onFechar}>
+            <Icone nome="x" tamanho={17} />
+          </button>
+          <h2 id="colecao-titulo">{item.titulo}</h2>
+          <p className="modal-text">Atualize seu progresso, status e nota.</p>
 
-              <div className="mb-3">
-                <label className="form-label" htmlFor="status">Status</label>
-                <select id="status" name="status" className="form-select" value={form.status} onChange={mudar}>
-                  {Object.entries(STATUS).map(([chave, s]) => (
-                    <option key={chave} value={chave}>{s.rotulo}</option>
-                  ))}
-                </select>
-              </div>
+          <Alerta>{erro}</Alerta>
 
-              <div className="row g-3">
-                <div className="col-6">
-                  <label className="form-label" htmlFor="eps">Episódios assistidos</label>
-                  <input
-                    id="eps"
-                    name="episodios_assistidos"
-                    type="number"
-                    min="0"
-                    max={item.total_episodios ?? undefined}
-                    className="form-control"
-                    value={form.episodios_assistidos}
-                    onChange={mudar}
-                    required
-                  />
-                  {item.total_episodios !== null && (
-                    <div className="form-text">Total: {item.total_episodios}</div>
-                  )}
-                </div>
-                <div className="col-6">
-                  <label className="form-label" htmlFor="nota">Nota (0 a 10)</label>
-                  <input
-                    id="nota"
-                    name="nota"
-                    type="number"
-                    min="0"
-                    max="10"
-                    className="form-control"
-                    value={form.nota}
-                    onChange={mudar}
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button type="button" className="btn btn-outline-secondary" onClick={onFechar}>
-                Cancelar
-              </button>
-              <button type="submit" className="btn btn-info" disabled={salvando}>
-                {salvando ? 'Salvando...' : 'Salvar'}
-              </button>
-            </div>
-          </form>
-        </div>
+          <div className="form-grid">
+            <label className="field col-6">
+              <span>Status</span>
+              <select name="status" value={form.status} onChange={mudar}>
+                {Object.entries(STATUS).map(([chave, s]) => (
+                  <option key={chave} value={chave}>{s.rotulo}</option>
+                ))}
+              </select>
+            </label>
+
+            <label className="field col-3">
+              <span>Episódios assistidos</span>
+              <input
+                name="episodios_assistidos"
+                type="number"
+                min="0"
+                max={item.total_episodios ?? undefined}
+                value={form.episodios_assistidos}
+                onChange={mudar}
+                required
+              />
+              {item.total_episodios !== null && <small>Total: {item.total_episodios}</small>}
+            </label>
+
+            <label className="field col-3">
+              <span>Nota (0 a 10)</span>
+              <input name="nota" type="number" min="0" max="10" value={form.nota} onChange={mudar} />
+            </label>
+          </div>
+
+          <div className="modal-actions">
+            <button type="button" className="btn btn-quiet" onClick={onFechar}>Cancelar</button>
+            <button type="submit" className="btn btn-primary" disabled={salvando}>
+              {salvando ? 'Salvando...' : 'Salvar'}
+            </button>
+          </div>
+        </form>
       </div>
-    </div>
+    </Portal>
   );
 }

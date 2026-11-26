@@ -9,9 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "aniverse-api": "file:..",
     "axios": "^1.7.7",
-    "bootstrap": "^5.3.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.28.0"

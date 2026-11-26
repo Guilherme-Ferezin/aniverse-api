@@ -1,7 +1,10 @@
 // Popula o catálogo de animes.
 //
+// ATENÇÃO: a API pública Jikan foi descontinuada em outubro de 2026. Se ela não responder,
+// o script usa o catálogo local (28 animes). As capas vêm de: npm run capas (AniList).
+//
 // Uso (na pasta raiz do projeto):
-//   npm run importar -- 50           -> os 50 animes mais populares da Jikan (com capa)
+//   npm run importar -- 200          -> os 200 animes mais populares da Jikan (com capa, máx. 300)
 //   npm run importar -- 50 e@x.com   -> define o dono dos animes pelo e-mail
 //   npm run seed                     -> só o catálogo local (sem internet, sem capas)
 //
@@ -46,14 +49,33 @@ function deJikan(anime) {
   };
 }
 
+// Pede uma página à Jikan; se ela mandar esperar (429) ou falhar, tenta de novo
+async function pedirPagina(pagina) {
+  for (let tentativa = 1; tentativa <= 4; tentativa++) {
+    const resposta = await fetch(`https://api.jikan.moe/v4/top/anime?page=${pagina}&limit=25`, {
+      signal: AbortSignal.timeout(8000), // não fica esperando se a Jikan estiver fora do ar
+    });
+    if (resposta.ok) return (await resposta.json()).data;
+    if (tentativa === 4 || (resposta.status !== 429 && resposta.status < 500)) {
+      throw new Error(`A Jikan respondeu com erro ${resposta.status}`);
+    }
+    await esperar(2000 * tentativa);
+  }
+}
+
 async function buscarDaJikan(quantidade) {
   const paginas = Math.ceil(quantidade / 25);
   const lista = [];
   for (let pagina = 1; pagina <= paginas; pagina++) {
-    const resposta = await fetch(`https://api.jikan.moe/v4/top/anime?page=${pagina}&limit=25`);
-    if (!resposta.ok) throw new Error(`A Jikan respondeu com erro ${resposta.status}`);
-    const json = await resposta.json();
-    lista.push(...json.data.map(deJikan));
+    try {
+      lista.push(...(await pedirPagina(pagina)).map(deJikan));
+      console.log(`Página ${pagina}/${paginas} baixada (${lista.length} animes)`);
+    } catch (erro) {
+      // Se já temos algumas páginas, usa o que conseguiu em vez de perder tudo
+      if (lista.length === 0) throw erro;
+      console.log(`Parando na página ${pagina}: ${erro.message}. Seguindo com ${lista.length} animes.`);
+      break;
+    }
     if (pagina < paginas) await esperar(1200); // respeita o limite da Jikan
   }
   return lista.slice(0, quantidade);
@@ -92,7 +114,7 @@ async function inserir(anime, usuarioId, idPorNome) {
 async function main() {
   const args = process.argv.slice(2);
   const somenteLocal = args.includes('--local');
-  const quantidade = Math.min(Number(args.find((a) => /^\d+$/.test(a))) || 25, 100);
+  const quantidade = Math.min(Number(args.find((a) => /^\d+$/.test(a))) || 25, 300);
   const email = args.find((a) => a.includes('@'));
 
   const usuarioId = await descobrirDono(email);

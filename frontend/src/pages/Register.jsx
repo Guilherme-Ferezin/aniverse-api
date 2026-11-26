@@ -2,10 +2,13 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { erroMsg } from '../services/api';
+import { useToast } from '../context/ToastContext';
 import Alerta from '../components/Alerta';
+import AuthLayout from '../components/AuthLayout';
 
 export default function Register() {
   const { registrar, login } = useAuth();
+  const avisar = useToast();
   const navigate = useNavigate();
   const [form, setForm] = useState({ nome: '', email: '', senha: '', confirmar: '' });
   const [erro, setErro] = useState('');
@@ -24,6 +27,7 @@ export default function Register() {
     try {
       await registrar({ nome: form.nome, email: form.email, senha: form.senha });
       await login(form.email, form.senha);
+      avisar('Conta criada com sucesso! Bem-vindo ao AniVerse.');
       navigate('/colecao');
     } catch (err) {
       setErro(erroMsg(err));
@@ -33,42 +37,35 @@ export default function Register() {
   }
 
   return (
-    <div className="container tela-auth">
-      <div className="card shadow">
-        <div className="card-body p-4">
-          <h1 className="h2 text-info text-center mb-1">Criar conta</h1>
-          <p className="text-secondary text-center mb-4">Monte sua coleção de animes</p>
+    <AuthLayout titulo="Criar conta" subtitulo="Monte sua coleção de animes.">
+      <Alerta>{erro}</Alerta>
 
-          <Alerta>{erro}</Alerta>
+      <form onSubmit={enviar}>
+        <label className="field">
+          <span>Nome</span>
+          <input name="nome" value={form.nome} onChange={mudar} required autoFocus />
+        </label>
+        <label className="field">
+          <span>E-mail</span>
+          <input name="email" type="email" value={form.email} onChange={mudar} required />
+        </label>
+        <label className="field">
+          <span>Senha</span>
+          <input name="senha" type="password" minLength={6} value={form.senha} onChange={mudar} required />
+          <small>Mínimo de 6 caracteres.</small>
+        </label>
+        <label className="field">
+          <span>Confirmar senha</span>
+          <input name="confirmar" type="password" value={form.confirmar} onChange={mudar} required />
+        </label>
+        <button type="submit" className="btn btn-primary full-btn" disabled={enviando}>
+          {enviando ? 'Cadastrando...' : 'Cadastrar'}
+        </button>
+      </form>
 
-          <form onSubmit={enviar}>
-            <div className="mb-3">
-              <label className="form-label" htmlFor="nome">Nome</label>
-              <input id="nome" name="nome" className="form-control" value={form.nome} onChange={mudar} required autoFocus />
-            </div>
-            <div className="mb-3">
-              <label className="form-label" htmlFor="email">E-mail</label>
-              <input id="email" name="email" type="email" className="form-control" value={form.email} onChange={mudar} required />
-            </div>
-            <div className="mb-3">
-              <label className="form-label" htmlFor="senha">Senha</label>
-              <input id="senha" name="senha" type="password" minLength={6} className="form-control" value={form.senha} onChange={mudar} required />
-              <div className="form-text">Mínimo de 6 caracteres.</div>
-            </div>
-            <div className="mb-4">
-              <label className="form-label" htmlFor="confirmar">Confirmar senha</label>
-              <input id="confirmar" name="confirmar" type="password" className="form-control" value={form.confirmar} onChange={mudar} required />
-            </div>
-            <button type="submit" className="btn btn-info w-100" disabled={enviando}>
-              {enviando ? 'Cadastrando...' : 'Cadastrar'}
-            </button>
-          </form>
-
-          <p className="text-center mt-3 mb-0">
-            Já tem conta? <Link to="/login">Entrar</Link>
-          </p>
-        </div>
-      </div>
-    </div>
+      <p className="auth-alt">
+        Já tem conta? <Link to="/login">Entrar</Link>
+      </p>
+    </AuthLayout>
   );
 }
